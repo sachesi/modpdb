@@ -1,0 +1,18 @@
+[package]
+name = "modpdb"
+version = "1.0.0"
+edition = "2024"
+description = "Store every unique kernel module ever probed on the system"
+license = "MIT"
+repository = "https://github.com/sachesi/modpdb"
+readme = "README.md"
+
+[[bin]]
+name = "modpdb"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4.5", features = ["derive"] }
+
+[dev-dependencies]
+tempfile = "3"
