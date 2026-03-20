@@ -1,0 +1,20 @@
+# modpdb configuration file
+# See: man modpdb
+
+# Path where the module database will be stored.
+# Do NOT use shell variables here — use a fully qualified absolute path.
+# Using a variable would cause problems when running via sudo.
+DBPATH="@HOME@/.config"
+
+# Terminal color theme.
+# Set to "dark" for terminals with a dark background.
+# Set to "light" for terminals with a light background.
+COLORS=dark
+#COLORS=light
+
+# Modules to exclude from the database.
+# Add out-of-tree or third-party modules that are NOT part of the
+# kernel package so they don't affect a localmodconfig build.
+#
+# Examples for common drivers (adjust to your system):
+IGNORE=(nvidia nvidia_drm nvidia_modeset nvidia_uvm vboxdrv vboxnetadp vboxnetflt)

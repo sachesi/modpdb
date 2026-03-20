@@ -1,0 +1,12 @@
+[Unit]
+Description=modpdb - scan and store new kernel modules
+Documentation=man:modpdb(8)
+RequiresMountsFor=/home/
+Wants=modpdb.timer
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/modpdb storesilent
+
+[Install]
+WantedBy=default.target

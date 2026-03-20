@@ -1,0 +1,23 @@
+#compdef modpdb
+
+_modpdb() {
+    local -a commands
+    commands=(
+        'list:Show all modules currently in the database'
+        'store:Store any new module(s) to the database'
+        'storesilent:Store new module(s) quietly (for use by systemd timer)'
+        'debug:Show difference between loaded modules and the database'
+        'recall:Modprobe every module in the database (must be root)'
+        'rebuild:Refresh and rebuild the database (must be root)'
+    )
+
+    _arguments '1: :->command'
+
+    case $state in
+        command)
+            _describe 'command' commands
+            ;;
+    esac
+}
+
+_modpdb "$@"
