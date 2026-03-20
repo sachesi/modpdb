@@ -40,8 +40,8 @@ sudo install -Dm644 completions/zsh-completion \
 A `.spec` file is provided to build an RPM package:
 
 ```sh
-# Create a source tarball first
-git archive --prefix=modpdb-1.0.0/ HEAD | gzip > ~/rpmbuild/SOURCES/modpdb-1.0.0.tar.gz
+# Pull sources automatically (from crates.io, so it also works if GitHub is private)
+spectool -g -R modpdb.spec
 
 # Build the RPM
 rpmbuild -ba modpdb.spec
