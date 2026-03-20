@@ -5,7 +5,9 @@ Summary:        Store every unique kernel module ever probed on the system
 
 License:        MIT
 URL:            https://github.com/sachesi/modpdb
-Source0:        https://github.com/sachesi/%{name}/archive/v%{version}/%{name}-%{version}.tar.gz
+# Upstream Git repository may be private. Pull sources from crates.io instead.
+# The downloaded file is renamed to modpdb-<version>.crate for rpmbuild.
+Source0:        https://crates.io/api/v1/crates/%{name}/%{version}/download#/%{name}-%{version}.crate
 
 BuildRequires:  cargo
 BuildRequires:  rust >= 1.74
@@ -23,7 +25,7 @@ kernel footprint.
 The database is stored at $DBPATH/modpdb.db (default: ~/.config/modpdb.db).
 
 %prep
-%autosetup
+%autosetup -n %{name}-%{version}
 
 %build
 cargo build --release
