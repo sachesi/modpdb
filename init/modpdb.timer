@@ -1,0 +1,7 @@
+[Unit]
+Description=Periodically check for new kernel modules
+PartOf=modpdb.service
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=6h
