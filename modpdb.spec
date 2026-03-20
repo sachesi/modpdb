@@ -2,6 +2,9 @@ Name:           modpdb
 Version:        1.0.0
 Release:        1%{?dist}
 Summary:        Store every unique kernel module ever probed on the system
+# Rust builds from a local/private checkout can produce an empty
+# debugsourcefiles.list with --build-in-place; disable debugsource subpackage.
+%global _debugsource_packages 0
 
 License:        MIT
 URL:            https://github.com/sachesi/modpdb
