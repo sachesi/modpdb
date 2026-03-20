@@ -5,7 +5,7 @@ Summary:        Store every unique kernel module ever probed on the system
 
 License:        MIT
 URL:            https://github.com/sachesi/modpdb
-Source0:        %{name}-%{version}.tar.gz
+Source0:        https://github.com/sachesi/%{name}/archive/v%{version}/%{name}-%{version}.tar.gz
 
 BuildRequires:  cargo
 BuildRequires:  rust >= 1.74
