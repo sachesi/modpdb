@@ -1,0 +1,109 @@
+.TH modpdb 8 "2024" "modpdb 1.0.0" "System Administration"
+.SH NAME
+\fBmodpdb\fP \- store every unique kernel module ever probed on the system
+.SH SYNOPSIS
+.B modpdb
+[\fIcommand\fP]
+.SH DESCRIPTION
+\fBmodpdb\fP is a utility for users who want to build a minimal kernel via
+\fBmake\ localmodconfig\fP. It logs every kernel module ever probed on the
+system to a text-based database file. This database can be passed directly to
+\fBmake\ localmodconfig\fP so that only the modules your system has ever needed
+are compiled in, greatly reducing build time and the resulting kernel footprint.
+.PP
+The database is stored at \fB$DBPATH/modpdb.db\fP (default:
+\fI~/.config/modpdb.db\fP) and can be fed to the kernel build system with:
+.PP
+.nf
+    make LSMOD=$HOME/.config/modpdb.db localmodconfig
+.fi
+.PP
+Configuration is read from \fB$XDG_CONFIG_HOME/modpdb.conf\fP (default:
+\fI~/.config/modpdb.conf\fP). If the file does not exist, \fBmodpdb\fP creates
+it from the installed skeleton template on first run.
+.SH COMMANDS
+.TP
+.B list
+Print all module names currently stored in the database to standard output.
+.TP
+.B store
+Snapshot the currently loaded modules (from \fI/proc/modules\fP) and append
+any previously unseen entries to the database. This is the most commonly used
+command and is safe to run as a regular user.
+.TP
+.B storesilent
+Identical to \fBstore\fP but produces minimal output. Designed to be called by
+the systemd timer so that the journal remains clean.
+.TP
+.B debug
+Show the symmetric difference between the live module list and the database:
+which modules are in the database but not currently loaded, and which loaded
+modules are not yet in the database.
+.TP
+.B recall
+Call \fBmodprobe\fP(8) for every module in the database to attempt to load them
+all. \fBMust be run as root (via sudo).\fP Useful for ensuring the running
+kernel has all modules from the database in memory before a rebuild.
+.TP
+.B rebuild
+Load all modules in the database via \fBmodprobe\fP (errors suppressed), then
+replace the database with the list of modules that actually loaded successfully.
+The old database is backed up with a timestamp suffix.
+\fBMust be run as root (via sudo).\fP
+.SH CONFIGURATION
+The configuration file is located at \fB$XDG_CONFIG_HOME/modpdb.conf\fP
+(typically \fI~/.config/modpdb.conf\fP).
+.TP
+.B DBPATH
+Absolute path to the directory where the database file (\fImodpdb.db\fP) is
+stored. Do not use shell variables; use a fully qualified path.
+.TP
+.B COLORS
+Color theme for terminal output. Set to \fBdark\fP (default) or \fBlight\fP.
+.TP
+.B IGNORE
+Bash-style array of module names to exclude from the database. Add
+out-of-tree modules (e.g.\ proprietary GPU drivers) that are not part of
+your kernel package so they do not affect a localmodconfig build.
+.SH AUTOMATION WITH SYSTEMD
+A user systemd service and timer are provided. Enable them with:
+.PP
+.nf
+    systemctl --user enable modpdb.timer
+    systemctl --user start modpdb.timer
+.fi
+.PP
+This runs \fBmodpdb storesilent\fP once at boot and then every six hours. Check
+status with:
+.PP
+.nf
+    systemctl --user status modpdb
+    systemctl --user list-timers
+.fi
+.SH WORKFLOW
+.IP 1. 4
+Edit \fI~/.config/modpdb.conf\fP — at minimum set \fBDBPATH\fP and populate
+\fBIGNORE\fP with any modules that are not part of the kernel package.
+.IP 2. 4
+Enable the systemd timer (or add a cron job) so the database is kept up to
+date automatically.
+.IP 3. 4
+When building a kernel, pass the database to make:
+.PP
+.nf
+    make LSMOD=$HOME/.config/modpdb.db localmodconfig
+.fi
+.IP 4. 4
+After a major kernel update, boot the distribution kernel and run
+\fBmodpdb store\fP to capture any newly available modules.
+.SH TIPS
+.IP \(bu 3
+Run \fBmodpdb rebuild\fP (as root) periodically to remove stale entries that no
+longer correspond to loadable modules.
+.IP \(bu 3
+The database is plain text — one module name per line, sorted alphabetically.
+You can view and edit it directly.
+.SH SEE ALSO
+\fBmodprobe\fP(8), \fBmodinfo\fP(8)
+.SH BUGS
+Please report bugs at \fIhttps://github.com/sachesi/modpdb\fP.

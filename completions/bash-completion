@@ -1,0 +1,14 @@
+# Bash completion for modpdb
+
+_modpdb() {
+    local cur prev commands
+    cur="${COMP_WORDS[COMP_CWORD]}"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    commands="list store storesilent debug recall rebuild"
+
+    if [[ ${COMP_CWORD} -eq 1 ]]; then
+        COMPREPLY=( $(compgen -W "${commands}" -- "${cur}") )
+    fi
+}
+
+complete -F _modpdb modpdb
