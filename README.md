@@ -37,12 +37,23 @@ sudo install -Dm644 completions/zsh-completion \
 
 ### Fedora RPM
 
-A `.spec` file is provided to build an RPM package. The source tarball is
-downloaded automatically during the build:
+A `.spec` file is provided to build an RPM package.
+
+**Public repository** – the source tarball is downloaded automatically:
 
 ```sh
 rpmbuild -ba modpdb.spec
 ```
+
+**Private repository (SSH)** – pass the SSH remote URL with `--define`:
+
+```sh
+rpmbuild -ba --define "git_ssh_url git@github.com:org/modpdb.git" modpdb.spec
+```
+
+SSH host-key verification uses your normal `~/.ssh/known_hosts`.  Make sure
+the SSH key for the remote host is available in your build environment (e.g.
+`ssh-add ~/.ssh/id_ed25519`) before running `rpmbuild`.
 
 ## First run & configuration
 
