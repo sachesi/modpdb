@@ -9,6 +9,7 @@ Source0:        https://github.com/sachesi/%{name}/archive/v%{version}/%{name}-%
 
 BuildRequires:  cargo
 BuildRequires:  rust >= 1.74
+BuildRequires:  curl
 
 Requires:       kmod
 
@@ -23,6 +24,10 @@ kernel footprint.
 The database is stored at $DBPATH/modpdb.db (default: ~/.config/modpdb.db).
 
 %prep
+# Download source tarball if not already present
+[ -f %{_sourcedir}/%{name}-%{version}.tar.gz ] || \
+    curl -fsSL -o %{_sourcedir}/%{name}-%{version}.tar.gz \
+    "https://github.com/sachesi/%{name}/archive/v%{version}/%{name}-%{version}.tar.gz"
 %autosetup
 
 %build

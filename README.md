@@ -37,13 +37,10 @@ sudo install -Dm644 completions/zsh-completion \
 
 ### Fedora RPM
 
-A `.spec` file is provided to build an RPM package:
+A `.spec` file is provided to build an RPM package. The source tarball is
+downloaded automatically during the build:
 
 ```sh
-# Create a source tarball first
-git archive --prefix=modpdb-1.0.0/ HEAD | gzip > ~/rpmbuild/SOURCES/modpdb-1.0.0.tar.gz
-
-# Build the RPM
 rpmbuild -ba modpdb.spec
 ```
 
