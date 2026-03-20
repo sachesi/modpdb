@@ -68,5 +68,5 @@ echo "  systemctl --user enable --now modpdb.timer"
 %{_datadir}/zsh/site-functions/_%{name}
 
 %changelog
-* %(date "+%a %b %d %Y") modpdb packager <modpdb@sachesi> - 1.0.0-1
+* Fri Mar 20 2026 modpdb packager <modpdb@sachesi> - 1.0.0-1
 - Initial RPM packaging for Fedora
