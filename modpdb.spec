@@ -1,20 +1,13 @@
+%define _debugsource_template %{nil}
+%define debug_package %{nil}
 Name:           modpdb
 Version:        1.0.0
 Release:        1%{?dist}
 Summary:        Store every unique kernel module ever probed on the system
-# Rust builds from a local/private checkout can produce an empty
-# debugsourcefiles.list with --build-in-place; disable debugsource subpackage.
-%global _debugsource_packages 0
-%global debug_package %{nil}
-
 License:        MIT
 URL:            https://github.com/sachesi/modpdb
-# Upstream Git repository is private; provide source tarball in SOURCES.
-Source0:        %{name}-%{version}.zip
-
 BuildRequires:  cargo
 BuildRequires:  rust >= 1.74
-
 Requires:       kmod
 
 %description
@@ -28,36 +21,27 @@ kernel footprint.
 The database is stored at $DBPATH/modpdb.db (default: ~/.config/modpdb.db).
 
 %prep
-%autosetup
+# Nothing to do — built in-place with --build-in-place
 
 %build
 cargo build --release
 
 %install
 install -Dm755 target/release/%{name} %{buildroot}%{_bindir}/%{name}
-
-# Skeleton config
 install -Dm644 share/%{name}.skel \
     %{buildroot}%{_datadir}/%{name}/%{name}.skel
-
-# Man page
 install -Dm644 doc/%{name}.8 \
     %{buildroot}%{_mandir}/man8/%{name}.8
-
-# Systemd user units
 install -Dm644 init/%{name}.service \
     %{buildroot}%{_userunitdir}/%{name}.service
 install -Dm644 init/%{name}.timer \
     %{buildroot}%{_userunitdir}/%{name}.timer
-
-# Shell completions
 install -Dm644 completions/bash-completion \
     %{buildroot}%{_datadir}/bash-completion/completions/%{name}
 install -Dm644 completions/zsh-completion \
     %{buildroot}%{_datadir}/zsh/site-functions/_%{name}
 
 %post
-# Inform the user about the service
 echo "To enable the modpdb timer for your user, run:"
 echo "  systemctl --user enable --now modpdb.timer"
 
