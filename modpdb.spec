@@ -55,6 +55,8 @@ install -Dm644 completions/bash-completion \
     %{buildroot}%{_datadir}/bash-completion/completions/%{name}
 install -Dm644 completions/zsh-completion \
     %{buildroot}%{_datadir}/zsh/site-functions/_%{name}
+install -Dm644 completions/fish-completion \
+    %{buildroot}%{_datadir}/fish/vendor_completions.d/%{name}.fish
 
 %post
 # Inform the user about the service
@@ -71,6 +73,7 @@ echo "  systemctl --user enable --now modpdb.timer"
 %{_userunitdir}/%{name}.timer
 %{_datadir}/bash-completion/completions/%{name}
 %{_datadir}/zsh/site-functions/_%{name}
+%{_datadir}/fish/vendor_completions.d/%{name}.fish
 
 %changelog
 * Fri Mar 20 2026 modpdb packager <modpdb@sachesi> - 1.0.0-1

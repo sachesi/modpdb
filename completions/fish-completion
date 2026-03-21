@@ -1,0 +1,6 @@
+complete -c modpdb -f -n "__fish_use_subcommand" -a list -d "Show all modules currently in the database"
+complete -c modpdb -f -n "__fish_use_subcommand" -a store -d "Store any new module(s) to the database"
+complete -c modpdb -f -n "__fish_use_subcommand" -a storesilent -d "Store new module(s) quietly (for use by systemd timer)"
+complete -c modpdb -f -n "__fish_use_subcommand" -a debug -d "Show difference between loaded modules and the database"
+complete -c modpdb -f -n "__fish_use_subcommand" -a recall -d "Modprobe every module in the database (must be root)"
+complete -c modpdb -f -n "__fish_use_subcommand" -a rebuild -d "Refresh and rebuild the database (must be root)"

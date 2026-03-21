@@ -4,4 +4,4 @@ PartOf=modpdb.service
 
 [Timer]
 OnBootSec=1min
-OnUnitActiveSec=6h
+OnUnitActiveSec=2h
