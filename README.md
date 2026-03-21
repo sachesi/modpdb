@@ -33,6 +33,8 @@ sudo install -Dm644 completions/bash-completion \
     /usr/share/bash-completion/completions/modpdb
 sudo install -Dm644 completions/zsh-completion \
     /usr/share/zsh/site-functions/_modpdb
+sudo install -Dm644 completions/fish-completion \
+    /usr/share/fish/vendor_completions.d/modpdb.fish
 ```
 
 ### Fedora RPM
@@ -72,7 +74,7 @@ modpdb [command]
 ## Automation with systemd
 
 Enable the included user timer to run `modpdb storesilent` at boot and every
-six hours:
+two hours:
 
 ```sh
 systemctl --user enable --now modpdb.timer
