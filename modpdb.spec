@@ -5,11 +5,12 @@ Summary:        Store every unique kernel module ever probed on the system
 # Rust builds from a local/private checkout can produce an empty
 # debugsourcefiles.list with --build-in-place; disable debugsource subpackage.
 %global _debugsource_packages 0
+%global debug_package %{nil}
 
 License:        MIT
 URL:            https://github.com/sachesi/modpdb
 # Upstream Git repository is private; provide source tarball in SOURCES.
-Source0:        %{name}-%{version}.tar.gz
+Source0:        %{name}-%{version}.zip
 
 BuildRequires:  cargo
 BuildRequires:  rust >= 1.74
