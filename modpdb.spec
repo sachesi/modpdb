@@ -1,5 +1,6 @@
 %define _debugsource_template %{nil}
 %define debug_package %{nil}
+%{!?_userunitdir:%global _userunitdir %{_prefix}/lib/systemd/user}
 Name:           modpdb
 Version:        1.0.0
 Release:        1%{?dist}
@@ -11,6 +12,7 @@ Source0:        %{name}-%{version}.tar.gz
 %endif
 BuildRequires:  cargo
 BuildRequires:  rust >= 1.74
+BuildRequires:  systemd-rpm-macros
 Requires:       kmod
 
 %description
