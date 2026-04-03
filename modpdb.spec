@@ -1,6 +1,6 @@
 %define _debugsource_template %{nil}
 %define debug_package %{nil}
-%{!?_userunitdir:%global _userunitdir %{_prefix}/lib/systemd/user}
+%global modpdb_userunitdir %{_prefix}/lib/systemd/user
 Name:           modpdb
 Version:        1.0.0
 Release:        1%{?dist}
@@ -12,7 +12,6 @@ Source0:        %{name}-%{version}.tar.gz
 %endif
 BuildRequires:  cargo
 BuildRequires:  rust >= 1.74
-BuildRequires:  systemd-rpm-macros
 Requires:       kmod
 
 %description
@@ -42,9 +41,9 @@ install -Dm644 share/%{name}.skel \
 install -Dm644 doc/%{name}.8 \
     %{buildroot}%{_mandir}/man8/%{name}.8
 install -Dm644 init/%{name}.service \
-    %{buildroot}%{_userunitdir}/%{name}.service
+    %{buildroot}%{modpdb_userunitdir}/%{name}.service
 install -Dm644 init/%{name}.timer \
-    %{buildroot}%{_userunitdir}/%{name}.timer
+    %{buildroot}%{modpdb_userunitdir}/%{name}.timer
 install -Dm644 completions/bash-completion \
     %{buildroot}%{_datadir}/bash-completion/completions/%{name}
 install -Dm644 completions/zsh-completion \
@@ -62,8 +61,8 @@ echo "  systemctl --user enable --now modpdb.timer"
 %{_bindir}/%{name}
 %{_datadir}/%{name}/
 %{_mandir}/man8/%{name}.8*
-%{_userunitdir}/%{name}.service
-%{_userunitdir}/%{name}.timer
+%{modpdb_userunitdir}/%{name}.service
+%{modpdb_userunitdir}/%{name}.timer
 %{_datadir}/bash-completion/completions/%{name}
 %{_datadir}/zsh/site-functions/_%{name}
 %{_datadir}/fish/vendor_completions.d/%{name}.fish
