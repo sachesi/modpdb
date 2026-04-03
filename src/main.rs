@@ -93,24 +93,7 @@ mod commands {
         if !cfg.db_path.exists() {
             let in_mem = modules::loaded_modules(&cfg.ignore)?;
             db::write(&cfg.db_path, &in_mem)?;
-            if !silent {
-                println!(
-                    "\x1b[1mNew database created: \x1b[01;33m{}\x1b[00m",
-                    cfg.db_path.display()
-                );
-                println!();
-                println!(
-                    "\x1b[1m{} modules are now saved in \x1b[01;33m{}\x1b[00m",
-                    in_mem.len(),
-                    cfg.db_path.display()
-                );
-            } else {
-                println!(
-                    "{} modules are now saved in {}",
-                    in_mem.len(),
-                    cfg.db_path.display()
-                );
-            }
+            print_db_size(cfg, in_mem.len(), silent, true);
             return Ok(());
         }
 
@@ -135,20 +118,7 @@ mod commands {
                 }
             }
             db::write(&cfg.db_path, &merged)?;
-            if !silent {
-                println!();
-                println!(
-                    "\x1b[1m{} modules are now saved in \x1b[01;33m{}\x1b[00m",
-                    merged.len(),
-                    cfg.db_path.display()
-                );
-            } else {
-                println!(
-                    "{} modules are now saved in {}",
-                    merged.len(),
-                    cfg.db_path.display()
-                );
-            }
+            print_db_size(cfg, merged.len(), silent, false);
         }
         Ok(())
     }
@@ -232,12 +202,16 @@ mod commands {
             p.set_file_name(format!("{name}.{timestamp}"));
             p
         };
-        fs::copy(&cfg.db_path, &backup_path)
-            .map_err(|e| format!("Failed to backup database: {e}"))?;
-        println!(
-            "\x1b[1mOld database saved to \x1b[01;33m{}\x1b[00m",
-            backup_path.display()
-        );
+        if cfg.db_path.exists() {
+            fs::copy(&cfg.db_path, &backup_path)
+                .map_err(|e| format!("Failed to backup database: {e}"))?;
+            println!(
+                "\x1b[1mOld database saved to \x1b[01;33m{}\x1b[00m",
+                backup_path.display()
+            );
+        } else {
+            println!("\x1b[1mNo existing database found. Creating a new one.\x1b[00m");
+        }
 
         // Rebuild from currently loaded modules only
         let in_mem = modules::loaded_modules(&cfg.ignore)?;
@@ -255,12 +229,24 @@ mod commands {
     pub fn default_view(cfg: &Config) -> Result<(), String> {
         announce(cfg)?;
         println!("\x1b[1mmodpdb\x1b[00m \x1b[01;32m[option]\x1b[00m");
-        println!("   \x1b[01;32mlist\x1b[00m\x1b[1m\t\tShow all modules currently in the database.\x1b[00m");
-        println!("   \x1b[01;32mstore\x1b[00m\x1b[1m\t\tStore any new module(s) to the database.\x1b[00m");
-        println!("   \x1b[01;32mstoresilent\x1b[00m\x1b[1m\tStore any new module(s) to the database more quietly.\x1b[00m");
-        println!("   \x1b[01;32mdebug\x1b[00m\x1b[1m\t\tDiff loaded modules from the database.\x1b[00m");
-        println!("   \x1b[01;32mrecall\x1b[00m\x1b[1m\tModprobe every module in the database.  \x1b[00m\x1b[01;31mMUST be called as root!\x1b[00m");
-        println!("   \x1b[01;32mrebuild\x1b[00m\x1b[1m\tRefresh and rebuild the database.       \x1b[00m\x1b[01;31mMUST be called as root!\x1b[00m");
+        println!(
+            "   \x1b[01;32mlist\x1b[00m\x1b[1m\t\tShow all modules currently in the database.\x1b[00m"
+        );
+        println!(
+            "   \x1b[01;32mstore\x1b[00m\x1b[1m\t\tStore any new module(s) to the database.\x1b[00m"
+        );
+        println!(
+            "   \x1b[01;32mstoresilent\x1b[00m\x1b[1m\tStore any new module(s) to the database more quietly.\x1b[00m"
+        );
+        println!(
+            "   \x1b[01;32mdebug\x1b[00m\x1b[1m\t\tDiff loaded modules from the database.\x1b[00m"
+        );
+        println!(
+            "   \x1b[01;32mrecall\x1b[00m\x1b[1m\tModprobe every module in the database.  \x1b[00m\x1b[01;31mMUST be called as root!\x1b[00m"
+        );
+        println!(
+            "   \x1b[01;32mrebuild\x1b[00m\x1b[1m\tRefresh and rebuild the database.       \x1b[00m\x1b[01;31mMUST be called as root!\x1b[00m"
+        );
         println!();
         println!("\x1b[1mSee manpage for additional details\x1b[00m");
         Ok(())
@@ -287,6 +273,24 @@ mod commands {
         );
         println!();
         Ok(())
+    }
+
+    fn print_db_size(cfg: &Config, size: usize, silent: bool, is_new: bool) {
+        if !silent {
+            if is_new {
+                println!(
+                    "\x1b[1mNew database created: \x1b[01;33m{}\x1b[00m",
+                    cfg.db_path.display()
+                );
+            }
+            println!();
+            println!(
+                "\x1b[1m{size} modules are now saved in \x1b[01;33m{}\x1b[00m",
+                cfg.db_path.display()
+            );
+        } else {
+            println!("{size} modules are now saved in {}", cfg.db_path.display());
+        }
     }
 
     fn require_root() -> Result<(), String> {
