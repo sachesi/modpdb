@@ -1,13 +1,13 @@
 %define _debugsource_template %{nil}
 %define debug_package %{nil}
-%bcond_with build_in_place
+%global modpdb_userunitdir %{_prefix}/lib/systemd/user
 Name:           modpdb
 Version:        1.0.0
 Release:        1%{?dist}
 Summary:        Store every unique kernel module ever probed on the system
 License:        MIT
 URL:            https://github.com/sachesi/modpdb
-%if %{without build_in_place}
+%if ! 0%{?_build_in_place}
 Source0:        %{name}-%{version}.tar.gz
 %endif
 BuildRequires:  cargo
@@ -25,8 +25,8 @@ kernel footprint.
 The database is stored at $DBPATH/modpdb.db (default: ~/.config/modpdb.db).
 
 %prep
-%if %{with build_in_place}
-# Build directly from the current checkout (e.g. rpmbuild --build-in-place --with build_in_place)
+%if 0%{?_build_in_place}
+# Build directly from the current checkout when rpmbuild is called with --build-in-place.
 %else
 %autosetup -n %{name}-%{version}
 %endif
@@ -41,9 +41,9 @@ install -Dm644 share/%{name}.skel \
 install -Dm644 doc/%{name}.8 \
     %{buildroot}%{_mandir}/man8/%{name}.8
 install -Dm644 init/%{name}.service \
-    %{buildroot}%{_userunitdir}/%{name}.service
+    %{buildroot}%{modpdb_userunitdir}/%{name}.service
 install -Dm644 init/%{name}.timer \
-    %{buildroot}%{_userunitdir}/%{name}.timer
+    %{buildroot}%{modpdb_userunitdir}/%{name}.timer
 install -Dm644 completions/bash-completion \
     %{buildroot}%{_datadir}/bash-completion/completions/%{name}
 install -Dm644 completions/zsh-completion \
@@ -61,8 +61,8 @@ echo "  systemctl --user enable --now modpdb.timer"
 %{_bindir}/%{name}
 %{_datadir}/%{name}/
 %{_mandir}/man8/%{name}.8*
-%{_userunitdir}/%{name}.service
-%{_userunitdir}/%{name}.timer
+%{modpdb_userunitdir}/%{name}.service
+%{modpdb_userunitdir}/%{name}.timer
 %{_datadir}/bash-completion/completions/%{name}
 %{_datadir}/zsh/site-functions/_%{name}
 %{_datadir}/fish/vendor_completions.d/%{name}.fish
