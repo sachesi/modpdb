@@ -6,6 +6,7 @@ Release:        1%{?dist}
 Summary:        Store every unique kernel module ever probed on the system
 License:        MIT
 URL:            https://github.com/sachesi/modpdb
+Source0:        %{name}-%{version}.tar.gz
 BuildRequires:  cargo
 BuildRequires:  rust >= 1.74
 Requires:       kmod
@@ -21,7 +22,7 @@ kernel footprint.
 The database is stored at $DBPATH/modpdb.db (default: ~/.config/modpdb.db).
 
 %prep
-# Nothing to do — built in-place with --build-in-place
+%autosetup -n %{name}-%{version}
 
 %build
 cargo build --release
