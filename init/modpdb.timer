@@ -1,7 +1,12 @@
 [Unit]
 Description=Periodically check for new kernel modules
-PartOf=modpdb.service
+Documentation=man:modpdb(8)
 
 [Timer]
 OnBootSec=1min
 OnUnitActiveSec=2h
+Persistent=true
+Unit=modpdb.service
+
+[Install]
+WantedBy=timers.target
