@@ -49,11 +49,9 @@ impl Config {
 fn get_home_dir() -> Result<PathBuf, String> {
     let username = if let Ok(sudo_user) = env::var("SUDO_USER") {
         if sudo_user == "root" {
-            return Err(
-                "Cannot determine your username (SUDO_USER=root). \
+            return Err("Cannot determine your username (SUDO_USER=root). \
                  Run as a regular user."
-                    .to_string(),
-            );
+                .to_string());
         }
         sudo_user
     } else {
@@ -109,10 +107,9 @@ fn get_username_for_uid(uid: u32) -> Option<String> {
     let passwd = fs::read_to_string("/etc/passwd").ok()?;
     for line in passwd.lines() {
         let fields: Vec<&str> = line.splitn(7, ':').collect();
-        if fields.len() >= 4
-            && fields[2].parse::<u32>().ok()? == uid {
-                return Some(fields[0].to_string());
-            }
+        if fields.len() >= 4 && fields[2].parse::<u32>().ok()? == uid {
+            return Some(fields[0].to_string());
+        }
     }
     None
 }
@@ -121,12 +118,10 @@ fn get_username_for_uid(uid: u32) -> Option<String> {
 fn create_initial_config(cfg_file: &Path, home_dir: &Path) -> Result<(), String> {
     let skel_path = Path::new(SKEL);
     if !skel_path.exists() {
-        return Err(format!(
-            "{SKEL} is missing, please reinstall this package."
-        ));
+        return Err(format!("{SKEL} is missing, please reinstall this package."));
     }
-    let skel_content = fs::read_to_string(skel_path)
-        .map_err(|e| format!("Cannot read skeleton config: {e}"))?;
+    let skel_content =
+        fs::read_to_string(skel_path).map_err(|e| format!("Cannot read skeleton config: {e}"))?;
     let content = skel_content.replace("@HOME@", &home_dir.to_string_lossy());
     fs::write(cfg_file, content)
         .map_err(|e| format!("Cannot write config file {}: {e}", cfg_file.display()))?;
@@ -163,10 +158,7 @@ fn parse_config(cfg_file: &Path) -> Result<Config, String> {
     let dbpath = match db_path_str {
         Some(p) if !p.is_empty() => PathBuf::from(p),
         _ => {
-            return Err(format!(
-                "DBPATH is not set in {}",
-                cfg_file.display()
-            ));
+            return Err(format!("DBPATH is not set in {}", cfg_file.display()));
         }
     };
 
@@ -184,8 +176,7 @@ fn parse_config(cfg_file: &Path) -> Result<Config, String> {
 fn unquote(s: &str) -> &str {
     let s = s.trim();
     if s.len() >= 2
-        && ((s.starts_with('"') && s.ends_with('"'))
-            || (s.starts_with('\'') && s.ends_with('\'')))
+        && ((s.starts_with('"') && s.ends_with('"')) || (s.starts_with('\'') && s.ends_with('\'')))
     {
         &s[1..s.len() - 1]
     } else {
