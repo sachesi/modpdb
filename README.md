@@ -68,7 +68,7 @@ modpdb [command]
   storesilent  Same as store but quieter (used by the systemd timer)
   debug        Show which modules are in the DB but not loaded, and vice versa
   recall       Load all modules in the database via modprobe  [needs root]
-  rebuild      Reload all modules then rebuild the database from scratch  [needs root]
+  rebuild      Attempt to load all DB modules, then rebuild from what is loaded  [needs root]
 ```
 
 ## Automation with systemd

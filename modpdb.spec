@@ -1,11 +1,15 @@
 %define _debugsource_template %{nil}
 %define debug_package %{nil}
+%bcond_with build_in_place
 Name:           modpdb
 Version:        1.0.0
 Release:        1%{?dist}
 Summary:        Store every unique kernel module ever probed on the system
 License:        MIT
 URL:            https://github.com/sachesi/modpdb
+%if %{without build_in_place}
+Source0:        %{name}-%{version}.tar.gz
+%endif
 BuildRequires:  cargo
 BuildRequires:  rust >= 1.74
 Requires:       kmod
@@ -21,7 +25,11 @@ kernel footprint.
 The database is stored at $DBPATH/modpdb.db (default: ~/.config/modpdb.db).
 
 %prep
-# Nothing to do — built in-place with --build-in-place
+%if %{with build_in_place}
+# Build directly from the current checkout (e.g. rpmbuild --build-in-place --with build_in_place)
+%else
+%autosetup -n %{name}-%{version}
+%endif
 
 %build
 cargo build --release

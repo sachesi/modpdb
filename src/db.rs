@@ -22,10 +22,11 @@ pub fn read(db_path: &Path) -> Result<BTreeSet<String>, String> {
 /// one entry per line.  Creates parent directories as needed.
 pub fn write(db_path: &Path, modules: &BTreeSet<String>) -> Result<(), String> {
     if let Some(parent) = db_path.parent()
-        && !parent.exists() {
-            fs::create_dir_all(parent)
-                .map_err(|e| format!("Cannot create directory {}: {e}", parent.display()))?;
-        }
+        && !parent.exists()
+    {
+        fs::create_dir_all(parent)
+            .map_err(|e| format!("Cannot create directory {}: {e}", parent.display()))?;
+    }
     let mut content = modules
         .iter()
         .map(|s| s.as_str())
