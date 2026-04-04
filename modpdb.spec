@@ -8,7 +8,7 @@ Summary:        Store every unique kernel module ever probed on the system
 License:        MIT
 URL:            https://github.com/sachesi/modpdb
 %if ! 0%{?_build_in_place}
-Source0:        %{url}/archive/refs/tags/%{version}/%{name}-%{version}.tar.gz
+Source0:        %{name}-%{version}.tar.gz
 %endif
 BuildRequires:  cargo
 BuildRequires:  cargo-rpm-macros
