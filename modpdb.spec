@@ -3,14 +3,15 @@
 %global modpdb_userunitdir %{_prefix}/lib/systemd/user
 Name:           modpdb
 Version:        0.1.0
-Release:        1%{?dist}
+Release:        2%{?dist}
 Summary:        Store every unique kernel module ever probed on the system
 License:        MIT
 URL:            https://github.com/sachesi/modpdb
 %if ! 0%{?_build_in_place}
-Source0:        %{name}-%{version}.tar.gz
+Source0:        %{url}/archive/refs/tags/%{version}/%{name}-%{version}.tar.gz
 %endif
 BuildRequires:  cargo
+BuildRequires:  cargo-rpm-macros
 BuildRequires:  rust >= 1.74
 Requires:       kmod
 
@@ -31,11 +32,24 @@ The database is stored at $DBPATH/modpdb.db (default: ~/.config/modpdb.db).
 %autosetup -n %{name}-%{version}
 %endif
 
+%generate_buildrequires
+%if ! 0%{?_build_in_place}
+%cargo_generate_buildrequires
+%endif
+
 %build
+%if 0%{?_build_in_place}
 cargo build --release
+%else
+%cargo_build --release
+%endif
 
 %install
+%if 0%{?_build_in_place}
 install -Dm755 target/release/%{name} %{buildroot}%{_bindir}/%{name}
+%else
+%cargo_install
+%endif
 install -Dm644 share/%{name}.skel \
     %{buildroot}%{_datadir}/%{name}/%{name}.skel
 install -Dm644 doc/%{name}.8 \
@@ -68,5 +82,9 @@ echo "  systemctl --user enable --now modpdb.timer"
 %{_datadir}/fish/vendor_completions.d/%{name}.fish
 
 %changelog
+* Sat Apr 04 2026 modpdb packager <modpdb@sachesi> - 0.1.0-2
+- Make spec COPR-friendly with remote Source0 and cargo-rpm macros
+- Keep --build-in-place workflow using direct cargo build/install
+
 * Fri Mar 20 2026 modpdb packager <modpdb@sachesi> - 0.1.0-1
 - Initial RPM packaging for Fedora
