@@ -2,7 +2,7 @@
 %define debug_package %{nil}
 %global modpdb_userunitdir %{_prefix}/lib/systemd/user
 Name:           modpdb
-Version:        1.0.0
+Version:        0.1.0
 Release:        1%{?dist}
 Summary:        Store every unique kernel module ever probed on the system
 License:        MIT
@@ -68,5 +68,5 @@ echo "  systemctl --user enable --now modpdb.timer"
 %{_datadir}/fish/vendor_completions.d/%{name}.fish
 
 %changelog
-* Fri Mar 20 2026 modpdb packager <modpdb@sachesi> - 1.0.0-1
+* Fri Mar 20 2026 modpdb packager <modpdb@sachesi> - 0.1.0-1
 - Initial RPM packaging for Fedora
