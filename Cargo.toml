@@ -1,6 +1,6 @@
 [package]
 name = "modpdb"
-version = "1.0.0"
+version = "0.1.0"
 edition = "2024"
 description = "Store every unique kernel module ever probed on the system"
 license = "MIT"
