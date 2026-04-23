@@ -1,20 +1,19 @@
-.PHONY: srpm clean
+TOPDIR := $(HOME)/rpmbuild
+SOURCES_DIR := $(TOPDIR)/SOURCES
+SPEC := modpdb.spec
+NAME := modpdb
+VERSION := $(shell rpmspec -q --qf '%{VERSION}\n' --srpm $(SPEC) | head -n1)
 
-NAME := $(shell sed -n 's/^Name:[[:space:]]*//p' "$(spec)" | head -n1)
-VERSION := $(shell sed -n 's/^Version:[[:space:]]*//p' "$(spec)" | head -n1)
-TARBALL := $(outdir)/$(NAME)-$(VERSION).tar.gz
+all: srpm
 
 srpm:
-	@test -n "$(outdir)" || { echo "error: outdir is required"; exit 1; }
-	@test -n "$(spec)" || { echo "error: spec is required"; exit 1; }
-	mkdir -p "$(outdir)"
-	git archive --format=tar.gz \
-		--prefix=$(NAME)-$(VERSION)/ \
-		-o "$(TARBALL)" HEAD
-	rpmbuild -bs "$(spec)" \
-		--define "_sourcedir $(outdir)" \
-		--define "_srcrpmdir $(outdir)"
+	mkdir -p "$(SOURCES_DIR)"
+	rm -rf vendor .cargo
+	cargo vendor vendor >/dev/null
+	tar --zstd -cf "$(SOURCES_DIR)/$(NAME)-$(VERSION)-vendor.tar.zst" vendor
+	rm -rf vendor .cargo
+	spectool -g -R $(SPEC)
+	rpmbuild -bs $(SPEC)
 
 clean:
-	@test -n "$(outdir)" || { echo "error: outdir is required"; exit 1; }
-	rm -f -- "$(TARBALL)" "$(outdir)"/*.src.rpm
+	rm -rf vendor .cargo

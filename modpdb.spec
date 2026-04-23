@@ -1,18 +1,19 @@
 %define _debugsource_template %{nil}
 %define debug_package %{nil}
 %global modpdb_userunitdir %{_prefix}/lib/systemd/user
+
 Name:           modpdb
-Version:        0.1.0
-Release:        2%{?dist}
+Version:        0.1.1
+Release:        1%{?dist}
 Summary:        Store every unique kernel module ever probed on the system
-License:        MIT
+License:        GPL-3.0-or-later
 URL:            https://github.com/sachesi/modpdb
-%if ! 0%{?_build_in_place}
-Source0:        %{name}-%{version}.tar.gz
-%endif
+Source0:        %{url}/archive/refs/tags/v%{version}.tar.gz#/%{name}-%{version}.tar.gz
+Source1:        %{name}-%{version}-vendor.tar.zst
+
 BuildRequires:  cargo
-BuildRequires:  cargo-rpm-macros
-BuildRequires:  rust >= 1.74
+BuildRequires:  rust
+BuildRequires:  gcc
 Requires:       kmod
 
 %description
@@ -26,30 +27,26 @@ kernel footprint.
 The database is stored at $DBPATH/modpdb.db (default: ~/.config/modpdb.db).
 
 %prep
-%if 0%{?_build_in_place}
-# Build directly from the current checkout when rpmbuild is called with --build-in-place.
-%else
 %autosetup -n %{name}-%{version}
-%endif
+tar -xaf %{SOURCE1}
 
-%generate_buildrequires
-%if ! 0%{?_build_in_place}
-%cargo_generate_buildrequires
-%endif
+mkdir -p .cargo
+cat > .cargo/config.toml <<'EOF'
+[source.crates-io]
+replace-with = "vendored-sources"
+
+[source.vendored-sources]
+directory = "vendor"
+EOF
 
 %build
-%if 0%{?_build_in_place}
-cargo build --release
-%else
-%cargo_build --release
-%endif
+export CARGO_HOME=$PWD/.cargo-home
+cargo build --release --frozen --offline
 
 %install
-%if 0%{?_build_in_place}
-install -Dm755 target/release/%{name} %{buildroot}%{_bindir}/%{name}
-%else
-%cargo_install
-%endif
+install -Dm755 target/release/%{name} \
+    %{buildroot}%{_bindir}/%{name}
+
 install -Dm644 share/%{name}.skel \
     %{buildroot}%{_datadir}/%{name}/%{name}.skel
 install -Dm644 doc/%{name}.8 \
@@ -65,15 +62,11 @@ install -Dm644 completions/zsh-completion \
 install -Dm644 completions/fish-completion \
     %{buildroot}%{_datadir}/fish/vendor_completions.d/%{name}.fish
 
-%post
-echo "To enable the modpdb timer for your user, run:"
-echo "  systemctl --user enable --now modpdb.timer"
-
 %files
 %license LICENSE
 %doc README.md
 %{_bindir}/%{name}
-%{_datadir}/%{name}/
+%{_datadir}/%{name}/%{name}.skel
 %{_mandir}/man8/%{name}.8*
 %{modpdb_userunitdir}/%{name}.service
 %{modpdb_userunitdir}/%{name}.timer
@@ -82,6 +75,10 @@ echo "  systemctl --user enable --now modpdb.timer"
 %{_datadir}/fish/vendor_completions.d/%{name}.fish
 
 %changelog
+* Thu Apr 23 2026 modpdb packager <modpdb@sachesi> - 0.1.1-3
+- Switch to vendored offline COPR build
+- Change license to GPL-3.0
+
 * Sat Apr 04 2026 modpdb packager <modpdb@sachesi> - 0.1.0-2
 - Make spec COPR-friendly with remote Source0 and cargo-rpm macros
 - Keep --build-in-place workflow using direct cargo build/install
