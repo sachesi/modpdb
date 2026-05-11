@@ -3,7 +3,8 @@ name = "modpdb"
 version = "0.1.1"
 edition = "2024"
 description = "Store every unique kernel module ever probed on the system"
-license = "MIT"
+license = "GPL-3.0-or-later"
+authors = ["sachesi <xsachesi@pm.me>"]
 repository = "https://github.com/sachesi/modpdb"
 readme = "README.md"
 
