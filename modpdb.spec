@@ -75,13 +75,13 @@ install -Dm644 completions/fish-completion \
 %{_datadir}/fish/vendor_completions.d/%{name}.fish
 
 %changelog
-* Thu Apr 23 2026 modpdb packager <modpdb@sachesi> - 0.1.1-3
+* Thu Apr 23 2026 sachesi <xsachesi@pm.me> - 0.1.1-3
 - Switch to vendored offline COPR build
 - Change license to GPL-3.0
 
-* Sat Apr 04 2026 modpdb packager <modpdb@sachesi> - 0.1.0-2
+* Sat Apr 04 2026 sachesi <xsachesi@pm.me> - 0.1.0-2
 - Make spec COPR-friendly with remote Source0 and cargo-rpm macros
 - Keep --build-in-place workflow using direct cargo build/install
 
-* Fri Mar 20 2026 modpdb packager <modpdb@sachesi> - 0.1.0-1
+* Fri Mar 20 2026 sachesi <xsachesi@pm.me> - 0.1.0-1
 - Initial RPM packaging for Fedora

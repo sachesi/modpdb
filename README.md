@@ -43,7 +43,7 @@ A `.spec` file is provided to build an RPM package:
 
 ```sh
 # Create source tarball from your local/private git checkout
-git archive --prefix=modpdb-0.1.0/ HEAD | gzip > ~/rpmbuild/SOURCES/modpdb-0.1.0.tar.gz
+git archive --prefix=modpdb-0.1.1/ HEAD | gzip > ~/rpmbuild/SOURCES/modpdb-0.1.1.tar.gz
 
 # Build the RPM
 rpmbuild -ba modpdb.spec
@@ -98,4 +98,4 @@ systemctl --user list-timers
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+GPL-3.0-or-later — see [LICENSE](LICENSE).
