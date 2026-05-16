@@ -14,6 +14,7 @@ pub fn read(db_path: &Path) -> Result<BTreeSet<String>, String> {
         .lines()
         .map(str::trim)
         .filter(|l| !l.is_empty())
+        .filter(|l| crate::modules::is_valid_module_name(l))
         .map(str::to_string)
         .collect())
 }
@@ -21,12 +22,13 @@ pub fn read(db_path: &Path) -> Result<BTreeSet<String>, String> {
 /// Write a sorted, deduplicated set of module names to the database file,
 /// one entry per line.  Creates parent directories as needed.
 pub fn write(db_path: &Path, modules: &BTreeSet<String>) -> Result<(), String> {
-    if let Some(parent) = db_path.parent()
-        && !parent.exists()
-    {
-        fs::create_dir_all(parent)
-            .map_err(|e| format!("Cannot create directory {}: {e}", parent.display()))?;
+    if let Some(parent) = db_path.parent() {
+        if !parent.exists() {
+            fs::create_dir_all(parent)
+                .map_err(|e| format!("Cannot create directory {}: {e}", parent.display()))?;
+        }
     }
+
     let mut content = modules
         .iter()
         .map(|s| s.as_str())
@@ -35,8 +37,15 @@ pub fn write(db_path: &Path, modules: &BTreeSet<String>) -> Result<(), String> {
     if !content.is_empty() {
         content.push('\n');
     }
-    fs::write(db_path, content)
-        .map_err(|e| format!("Cannot write database {}: {e}", db_path.display()))?;
+
+    // Atomic write: write to temp file first, then rename.
+    let temp_path = db_path.with_extension("tmp");
+    fs::write(&temp_path, content)
+        .map_err(|e| format!("Cannot write to temporary database {}: {e}", temp_path.display()))?;
+
+    fs::rename(&temp_path, db_path)
+        .map_err(|e| format!("Cannot rename {} to {}: {e}", temp_path.display(), db_path.display()))?;
+
     Ok(())
 }
 
