@@ -14,10 +14,18 @@ pub fn loaded_modules(ignore: &[String]) -> Result<BTreeSet<String>, String> {
     let modules = content
         .lines()
         .filter_map(|line| line.split_whitespace().next().map(str::to_string))
+        .filter(|name| is_valid_module_name(name))
         .filter(|name| !ignore_set.contains(name.as_str()))
         .collect();
 
     Ok(modules)
+}
+
+/// Check if a string is a valid kernel module name to prevent flag injection.
+pub fn is_valid_module_name(name: &str) -> bool {
+    !name.is_empty()
+        && !name.starts_with('-')
+        && name.chars().all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
 }
 
 #[cfg(test)]
@@ -60,9 +68,13 @@ mod tests {
     }
 
     #[test]
-    fn test_empty_ignore_list() {
-        let content = "module_a 1 0 - Live 0x0\nmodule_b 1 0 - Live 0x1\n";
-        let result = parse_names(content, &[]);
-        assert_eq!(result.len(), 2);
+    fn test_is_valid_module_name() {
+        assert!(is_valid_module_name("ext4"));
+        assert!(is_valid_module_name("nvidia_drm"));
+        assert!(is_valid_module_name("xhci-hcd"));
+        assert!(!is_valid_module_name(""));
+        assert!(!is_valid_module_name("-a"));
+        assert!(!is_valid_module_name("module;rm -rf /"));
+        assert!(!is_valid_module_name("module name"));
     }
 }

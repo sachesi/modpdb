@@ -42,7 +42,8 @@ fn main() {
     let cli = Cli::parse();
 
     let cfg = match Config::load() {
-        Ok(c) => c,
+        Ok(Some(c)) => c,
+        Ok(None) => process::exit(0),
         Err(e) => {
             eprintln!("==> ERROR: {e}");
             process::exit(1);
@@ -154,6 +155,7 @@ mod commands {
         if !modules_list.is_empty() {
             let status = Command::new("modprobe")
                 .arg("-a")
+                .arg("--")
                 .args(&modules_list)
                 .status()
                 .map_err(|e| format!("Failed to run modprobe: {e}"))?;
@@ -186,6 +188,7 @@ mod commands {
         if !modules_list.is_empty() {
             let _ = Command::new("modprobe")
                 .arg("-a")
+                .arg("--")
                 .args(&modules_list)
                 .output();
         }

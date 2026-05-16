@@ -12,9 +12,9 @@ pub struct Config {
 impl Config {
     /// Load configuration from `$XDG_CONFIG_HOME/modpdb.conf`.
     ///
-    /// If no config file exists, one is created from the skeleton file and the
-    /// process exits with code 0 so the user can review it before first use.
-    pub fn load() -> Result<Self, String> {
+    /// Returns `Ok(Some(Config))` if loaded, `Ok(None)` if a fresh config was
+    /// just created (caller should exit), or `Err` on failure.
+    pub fn load() -> Result<Option<Self>, String> {
         let home_dir = get_home_dir()?;
         let xdg_config_home = env::var("XDG_CONFIG_HOME")
             .map(PathBuf::from)
@@ -35,10 +35,10 @@ impl Config {
             println!();
             println!(" Consult the man page for setup instructions.");
             println!("------------------------------------------------------------");
-            std::process::exit(0);
+            return Ok(None);
         }
 
-        parse_config(&cfg_file)
+        parse_config(&cfg_file).map(Some)
     }
 }
 
