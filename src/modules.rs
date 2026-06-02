@@ -37,6 +37,7 @@ mod tests {
         proc_content
             .lines()
             .filter_map(|line| line.split_whitespace().next().map(str::to_string))
+            .filter(|name| is_valid_module_name(name))
             .filter(|name| !ignore_set.contains(name.as_str()))
             .collect()
     }

@@ -1,6 +1,7 @@
 mod config;
 mod db;
 mod modules;
+mod style;
 
 use std::process;
 
@@ -39,6 +40,8 @@ enum Commands {
 }
 
 fn main() {
+    reset_sigpipe();
+
     let cli = Cli::parse();
 
     let cfg = match Config::load() {
@@ -66,6 +69,20 @@ fn main() {
     }
 }
 
+/// Restore the default SIGPIPE disposition (Rust ignores it by default), so
+/// piping output into a short reader such as `head` terminates cleanly instead
+/// of panicking on a broken pipe.
+fn reset_sigpipe() {
+    unsafe extern "C" {
+        fn signal(signum: i32, handler: usize) -> usize;
+    }
+    const SIGPIPE: i32 = 13;
+    const SIG_DFL: usize = 0;
+    unsafe {
+        signal(SIGPIPE, SIG_DFL);
+    }
+}
+
 mod commands {
     use std::collections::BTreeSet;
     use std::fs;
@@ -75,6 +92,7 @@ mod commands {
     use crate::config::Config;
     use crate::db;
     use crate::modules;
+    use crate::style;
 
     pub fn list(cfg: &Config) -> Result<(), String> {
         let db = db::read(&cfg.db_path)?;
@@ -106,16 +124,18 @@ mod commands {
 
         if merged == existing {
             if !silent {
-                println!("\x1b[1mNo new modules detected. Taking no action.\x1b[00m");
+                let c = style::active();
+                println!("{}No new modules detected. Taking no action.{}", c.bold, c.reset);
             } else {
                 println!("No new modules detected");
             }
         } else {
             if !silent {
+                let c = style::active();
                 let new_mods: BTreeSet<&String> = merged.difference(&existing).collect();
-                println!("\x1b[01;33mNew module(s) detected:\x1b[00m");
+                println!("{}New module(s) detected:{}", c.yellow, c.reset);
                 for m in &new_mods {
-                    println!("\x1b[1m{m}\x1b[00m");
+                    println!("{}{m}{}", c.bold, c.reset);
                 }
             }
             db::write(&cfg.db_path, &merged)?;
@@ -126,15 +146,16 @@ mod commands {
 
     pub fn debug(cfg: &Config) -> Result<(), String> {
         announce(cfg)?;
+        let c = style::active();
         let db = db::read(&cfg.db_path)?;
         let in_mem = modules::loaded_modules(&cfg.ignore)?;
 
-        println!("\x1b[1mThe following are in the database but not loaded:\x1b[00m");
+        println!("{}The following are in the database but not loaded:{}", c.bold, c.reset);
         for m in db.difference(&in_mem) {
             println!("{m}");
         }
         println!();
-        println!("\x1b[1mThe following are loaded but not in the database:\x1b[00m");
+        println!("{}The following are loaded but not in the database:{}", c.bold, c.reset);
         for m in in_mem.difference(&db) {
             println!("{m}");
         }
@@ -144,12 +165,16 @@ mod commands {
     pub fn recall(cfg: &Config) -> Result<(), String> {
         require_root()?;
         announce(cfg)?;
+        let c = style::active();
         let db = db::read(&cfg.db_path)?;
         let modules_list: Vec<&str> = db.iter().map(String::as_str).collect();
 
         println!(
-            "\x1b[1mAttempting to modprobe all modules from \x1b[01;33m{}\x1b[00m",
-            cfg.db_path.display()
+            "{}Attempting to modprobe all modules from {}{}{}",
+            c.bold,
+            c.yellow,
+            cfg.db_path.display(),
+            c.reset
         );
 
         if !modules_list.is_empty() {
@@ -167,21 +192,30 @@ mod commands {
         let loaded = modules::loaded_modules(&cfg.ignore)?;
         println!();
         println!(
-            "\x1b[01;31m{}\x1b[00m\x1b[1m modules are now loaded per \x1b[01;33m/proc/modules\x1b[00m",
-            loaded.len()
+            "{}{}{}{} modules are now loaded per {}/proc/modules{}",
+            c.red,
+            loaded.len(),
+            c.reset,
+            c.bold,
+            c.yellow,
+            c.reset
         );
         Ok(())
     }
 
     pub fn rebuild(cfg: &Config) -> Result<(), String> {
         require_root()?;
+        let c = style::active();
 
         let db = db::read(&cfg.db_path)?;
         let modules_list: Vec<&str> = db.iter().map(String::as_str).collect();
 
         println!(
-            "\x1b[1mRefreshing the contents of \x1b[01;33m{}\x1b[00m",
-            cfg.db_path.display()
+            "{}Refreshing the contents of {}{}{}",
+            c.bold,
+            c.yellow,
+            cfg.db_path.display(),
+            c.reset
         );
 
         // Attempt to load all modules (suppress errors — some may not exist)
@@ -202,18 +236,21 @@ mod commands {
                 .unwrap_or_default()
                 .to_string_lossy()
                 .to_string();
-            p.set_file_name(format!("{name}.{timestamp}"));
+            p.set_file_name(format!("{name}.{timestamp}.{}", std::process::id()));
             p
         };
         if cfg.db_path.exists() {
             fs::copy(&cfg.db_path, &backup_path)
                 .map_err(|e| format!("Failed to backup database: {e}"))?;
             println!(
-                "\x1b[1mOld database saved to \x1b[01;33m{}\x1b[00m",
-                backup_path.display()
+                "{}Old database saved to {}{}{}",
+                c.bold,
+                c.yellow,
+                backup_path.display(),
+                c.reset
             );
         } else {
-            println!("\x1b[1mNo existing database found. Creating a new one.\x1b[00m");
+            println!("{}No existing database found. Creating a new one.{}", c.bold, c.reset);
         }
 
         // Rebuild from currently loaded modules only
@@ -222,41 +259,52 @@ mod commands {
 
         println!();
         println!(
-            "\x1b[1m{} modules are now saved in \x1b[01;33m{}\x1b[00m",
+            "{}{} modules are now saved in {}{}{}",
+            c.bold,
             in_mem.len(),
-            cfg.db_path.display()
+            c.yellow,
+            cfg.db_path.display(),
+            c.reset
         );
         Ok(())
     }
 
     pub fn default_view(cfg: &Config) -> Result<(), String> {
         announce(cfg)?;
-        println!("\x1b[1mmodpdb\x1b[00m \x1b[01;32m[option]\x1b[00m");
+        let c = style::active();
+        println!("{}modpdb{} {}[option]{}", c.bold, c.reset, c.green, c.reset);
         println!(
-            "   \x1b[01;32mlist\x1b[00m\x1b[1m\t\tShow all modules currently in the database.\x1b[00m"
+            "   {}list{}{}\t\tShow all modules currently in the database.{}",
+            c.green, c.reset, c.bold, c.reset
         );
         println!(
-            "   \x1b[01;32mstore\x1b[00m\x1b[1m\t\tStore any new module(s) to the database.\x1b[00m"
+            "   {}store{}{}\t\tStore any new module(s) to the database.{}",
+            c.green, c.reset, c.bold, c.reset
         );
         println!(
-            "   \x1b[01;32mstoresilent\x1b[00m\x1b[1m\tStore any new module(s) to the database more quietly.\x1b[00m"
+            "   {}storesilent{}{}\tStore any new module(s) to the database more quietly.{}",
+            c.green, c.reset, c.bold, c.reset
         );
         println!(
-            "   \x1b[01;32mdebug\x1b[00m\x1b[1m\t\tDiff loaded modules from the database.\x1b[00m"
+            "   {}debug{}{}\t\tDiff loaded modules from the database.{}",
+            c.green, c.reset, c.bold, c.reset
         );
         println!(
-            "   \x1b[01;32mrecall\x1b[00m\x1b[1m\tModprobe every module in the database.  \x1b[00m\x1b[01;31mMUST be called as root!\x1b[00m"
+            "   {}recall{}{}\tModprobe every module in the database.  {}{}MUST be called as root!{}",
+            c.green, c.reset, c.bold, c.reset, c.red, c.reset
         );
         println!(
-            "   \x1b[01;32mrebuild\x1b[00m\x1b[1m\tRefresh and rebuild the database.       \x1b[00m\x1b[01;31mMUST be called as root!\x1b[00m"
+            "   {}rebuild{}{}\tRefresh and rebuild the database.       {}{}MUST be called as root!{}",
+            c.green, c.reset, c.bold, c.reset, c.red, c.reset
         );
         println!();
-        println!("\x1b[1mSee manpage for additional details\x1b[00m");
+        println!("{}See manpage for additional details{}", c.bold, c.reset);
         Ok(())
     }
 
     fn announce(cfg: &Config) -> Result<(), String> {
-        println!("\x1b[01;31mmodpdb v{}\x1b[00m", crate::VERSION);
+        let c = style::active();
+        println!("{}modpdb v{}{}", c.red, crate::VERSION, c.reset);
         println!();
 
         let in_mem = modules::loaded_modules(&cfg.ignore)?;
@@ -267,12 +315,18 @@ mod commands {
         };
 
         println!(
-            "\x1b[1m{} modules currently loaded per \x1b[01;33m/proc/modules\x1b[00m",
-            in_mem.len()
+            "{}{} modules currently loaded per {}/proc/modules{}",
+            c.bold,
+            in_mem.len(),
+            c.yellow,
+            c.reset
         );
         println!(
-            "\x1b[1m{db_size} modules are in \x1b[01;33m{}\x1b[00m",
-            cfg.db_path.display()
+            "{}{db_size} modules are in {}{}{}",
+            c.bold,
+            c.yellow,
+            cfg.db_path.display(),
+            c.reset
         );
         println!();
         Ok(())
@@ -280,16 +334,23 @@ mod commands {
 
     fn print_db_size(cfg: &Config, size: usize, silent: bool, is_new: bool) {
         if !silent {
+            let c = style::active();
             if is_new {
                 println!(
-                    "\x1b[1mNew database created: \x1b[01;33m{}\x1b[00m",
-                    cfg.db_path.display()
+                    "{}New database created: {}{}{}",
+                    c.bold,
+                    c.yellow,
+                    cfg.db_path.display(),
+                    c.reset
                 );
             }
             println!();
             println!(
-                "\x1b[1m{size} modules are now saved in \x1b[01;33m{}\x1b[00m",
-                cfg.db_path.display()
+                "{}{size} modules are now saved in {}{}{}",
+                c.bold,
+                c.yellow,
+                cfg.db_path.display(),
+                c.reset
             );
         } else {
             println!("{size} modules are now saved in {}", cfg.db_path.display());

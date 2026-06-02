@@ -58,13 +58,11 @@ The configuration file is located at \fB$XDG_CONFIG_HOME/modpdb.conf\fP
 Absolute path to the directory where the database file (\fImodpdb.db\fP) is
 stored. Do not use shell variables; use a fully qualified path.
 .TP
-.B COLORS
-Color theme for terminal output. Set to \fBdark\fP (default) or \fBlight\fP.
-.TP
 .B IGNORE
-Bash-style array of module names to exclude from the database. Add
-out-of-tree modules (e.g.\ proprietary GPU drivers) that are not part of
-your kernel package so they do not affect a localmodconfig build.
+Bash-style array of module names to exclude from the database, written on a
+single line as \fBIGNORE=(mod1 mod2 ...)\fP. Add out-of-tree modules
+(e.g.\ proprietary GPU drivers) that are not part of your kernel package so
+they do not affect a localmodconfig build.
 .SH AUTOMATION WITH SYSTEMD
 A user systemd service and timer are provided. Enable them with:
 .PP
@@ -103,6 +101,11 @@ longer correspond to loadable modules.
 .IP \(bu 3
 The database is plain text — one module name per line, sorted alphabetically.
 You can view and edit it directly.
+.SH ENVIRONMENT
+.TP
+.B NO_COLOR
+When set (to any value), disables colored output. Color is also disabled
+automatically when standard output is not a terminal.
 .SH SEE ALSO
 \fBmodprobe\fP(8), \fBmodinfo\fP(8)
 .SH BUGS
