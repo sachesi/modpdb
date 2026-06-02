@@ -38,8 +38,10 @@ pub fn write(db_path: &Path, modules: &BTreeSet<String>) -> Result<(), String> {
         content.push('\n');
     }
 
-    // Atomic write: write to temp file first, then rename.
-    let temp_path = db_path.with_extension("tmp");
+    // Atomic write: write to a pid-suffixed temp file first, then rename. The
+    // pid suffix keeps concurrent writers (e.g. the systemd timer firing during
+    // a manual store) from colliding on the same temp path.
+    let temp_path = db_path.with_extension(format!("tmp.{}", std::process::id()));
     fs::write(&temp_path, content)
         .map_err(|e| format!("Cannot write to temporary database {}: {e}", temp_path.display()))?;
 

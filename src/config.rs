@@ -16,9 +16,15 @@ impl Config {
     /// just created (caller should exit), or `Err` on failure.
     pub fn load() -> Result<Option<Self>, String> {
         let home_dir = get_home_dir()?;
-        let xdg_config_home = env::var("XDG_CONFIG_HOME")
-            .map(PathBuf::from)
-            .unwrap_or_else(|_| home_dir.join(".config"));
+        // Under sudo the ambient XDG_CONFIG_HOME belongs to root, not the target
+        // user, so ignore it and derive the path from the resolved user home.
+        let xdg_config_home = if env::var_os("SUDO_USER").is_some() {
+            home_dir.join(".config")
+        } else {
+            env::var("XDG_CONFIG_HOME")
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| home_dir.join(".config"))
+        };
 
         if !xdg_config_home.exists() {
             fs::create_dir_all(&xdg_config_home)
@@ -130,10 +136,9 @@ fn create_initial_config(cfg_file: &Path, home_dir: &Path) -> Result<(), String>
 
 /// Parse a simple shell-style config file supporting:
 /// - `DBPATH=/path`  or  `DBPATH="/path"`
-/// - `COLORS=dark`
 /// - `IGNORE=(mod1 mod2 mod3)`
 ///
-/// Lines beginning with `#` and blank lines are ignored.
+/// Lines beginning with `#`, blank lines, and unrecognized keys are ignored.
 fn parse_config(cfg_file: &Path) -> Result<Config, String> {
     let content = fs::read_to_string(cfg_file)
         .map_err(|e| format!("Cannot read config file {}: {e}", cfg_file.display()))?;
@@ -152,7 +157,7 @@ fn parse_config(cfg_file: &Path) -> Result<Config, String> {
         } else if let Some(rest) = line.strip_prefix("IGNORE=") {
             ignore = parse_array(rest);
         }
-        // COLORS key is accepted but not required by the Rust implementation
+        // Unrecognized keys (e.g. a legacy COLORS setting) are ignored.
     }
 
     let dbpath = match db_path_str {
