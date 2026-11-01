@@ -85,7 +85,6 @@ fn reset_sigpipe() {
 
 mod commands {
     use std::collections::BTreeSet;
-    use std::fs;
     use std::io::{self, Write};
     use std::process::Command;
 
@@ -240,7 +239,7 @@ mod commands {
             p
         };
         if cfg.db_path.exists() {
-            fs::copy(&cfg.db_path, &backup_path)
+            db::backup(&cfg.db_path, &backup_path)
                 .map_err(|e| format!("Failed to backup database: {e}"))?;
             println!(
                 "{}Old database saved to {}{}{}",
