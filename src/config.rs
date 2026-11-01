@@ -129,7 +129,7 @@ fn create_initial_config(cfg_file: &Path, home_dir: &Path) -> Result<(), String>
     let skel_content =
         fs::read_to_string(skel_path).map_err(|e| format!("Cannot read skeleton config: {e}"))?;
     let content = skel_content.replace("@HOME@", &home_dir.to_string_lossy());
-    fs::write(cfg_file, content)
+    crate::db::create_new_file(cfg_file, content.as_bytes())
         .map_err(|e| format!("Cannot write config file {}: {e}", cfg_file.display()))?;
     Ok(())
 }
